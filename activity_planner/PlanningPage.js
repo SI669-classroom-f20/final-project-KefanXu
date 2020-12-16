@@ -345,6 +345,8 @@ export class PlanningPage extends React.Component {
           this.props.navigation.navigate("Tracking", {
             currentUser: this.currentUser,
             plan: this.state.dailyPlanList,
+            startingEnergy: this.energyNum,
+            baselineEnergy: this.energyNumBase
         });
           //console.log(this.state.dailyPlanList);
           this.dataModel.addPlans(this.currentUser.key, this.state.dailyPlanList);
