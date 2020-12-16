@@ -96,7 +96,7 @@ class DataModel {
       let energyEntryData = energyEntry.data();
       if (energyEntryData.date === date) {
         targetId = energyEntry.id;
-        //console.log("find id",targetId);
+        console.log("find id",targetId);
 
         isEntryExsist = true;
       }
@@ -113,7 +113,7 @@ class DataModel {
 
   }
   addPlans = async (userID, activityList) => {
-    //console.log(userID, activityList);
+    console.log(userID, activityList);
     let timeStamp = new Date();
     let timeStampText =  moment(timeStamp).format("YYYY:HH:mm");
     let newDayPlanDoc = {
@@ -125,7 +125,7 @@ class DataModel {
     let targetId;
     let dailyPlansRefSnap = await this.usersRef.doc(userID).collection("daily_plans").get();
     dailyPlansRefSnap.forEach(planEntries => {
-      //console.log(planEntries.id);
+      console.log(planEntries.id);
       if (planEntries.data().date === timeStampText) {
         targetId = planEntries.id;
       }

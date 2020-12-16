@@ -54,20 +54,11 @@ export class TrackingPage extends React.Component {
     // this.activityName;
     this.currentUser = this.props.route.params.currentUser;
     this.plan = this.props.route.params.plan;
-    this.startingEnergy = this.props.route.params.startingEnergy;
-    this.baselineEnergy = this.props.route.params.baselineEnergy;
     console.log("==================plan==================");
     console.log(this.plan);
-    console.log("==================energy level==================");
-    console.log(this.startingEnergy, this.baselineEnergy);
-
-    
     this.state = {
       notification: false,
-      expoPushToken:"",
-      currentActivity:"",
-      currentEnergy: this.startingEnergy,
-
+      expoPushToken:""
     }
   }
   async componentDidMount() {
@@ -146,7 +137,6 @@ export class TrackingPage extends React.Component {
     // let seconds;
     // let notificationType = this.notificationType;
     // let activityName = this.activityName;
-    
     let title;
     let body;
     let actionId;
@@ -163,7 +153,6 @@ export class TrackingPage extends React.Component {
         actionId = "startAction";
         identifier = "startAction";
         buttonTitle = "Deny";
-        this.setState({currentActivity:activityName})
         // Notifications.setNotificationCategoryAsync("interaction", [{
         //   actionId:"startAction",
         //   identifier:"startAction",
@@ -235,42 +224,31 @@ export class TrackingPage extends React.Component {
 
   render() {
     return (
-      // <View
-      //   style={{
-      //     flex: 1,
-      //     alignItems: 'center',
-      //     justifyContent: 'space-around',
-      //   }}>
-      //   <Text>Your expo push token: {this.state.expoPushToken}</Text>
-      //   <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-      //     <Text>Title: {this.state.notification && this.state.notification.request.content.title} </Text>
-      //     <Text>Body: {this.state.notification && this.state.notification.request.content.body}</Text>
-      //     <Text>Data: {this.state.notification && JSON.stringify(this.state.notification.request.content.data)}</Text>
-      //   </View>
-      //   <Button
-      //     title="Press to Send Notification"
-      //     onPress={async () => {
-      //       this.setNotificationTimer("12:28","start","test");
-      //      // await this.setNotificationTimer("12:17","end","test");
-      //     }}
-      //   />
-      //   <Button
-      //     title="Press to Send Notification"
-      //     onPress={async () => {
-      //       await this.sendPushNotification(this.state.expoPushToken);
-      //     }}
-      //   />
-      // </View>
-      <View style={registStyle.contatiner}>
-        <View style={planningPage.promptBox2Vis}>
-          <View style={planningPage.promptBoxTextContainer}>
-            <Text style={planningPage.promptBoxText}>
-              My current activity is {this.state.currentActivity},
-              {"\n"}My energy level is {this.state.currentEnergy}
-            </Text> 
-            
-          </View>
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'space-around',
+        }}>
+        <Text>Your expo push token: {this.state.expoPushToken}</Text>
+        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+          <Text>Title: {this.state.notification && this.state.notification.request.content.title} </Text>
+          <Text>Body: {this.state.notification && this.state.notification.request.content.body}</Text>
+          <Text>Data: {this.state.notification && JSON.stringify(this.state.notification.request.content.data)}</Text>
         </View>
+        <Button
+          title="Press to Send Notification"
+          onPress={async () => {
+            this.setNotificationTimer("12:28","start","test");
+           // await this.setNotificationTimer("12:17","end","test");
+          }}
+        />
+        <Button
+          title="Press to Send Notification"
+          onPress={async () => {
+            await this.sendPushNotification(this.state.expoPushToken);
+          }}
+        />
       </View>
     );
 
