@@ -92,10 +92,10 @@ export class TrackingPage extends React.Component {
       Notifications.removeNotificationSubscription(this._handleNotificationResponse);
     }
   }
-  componentWillUnmount() {
-    Notifications.removeNotificationSubscription(this._handleNotification);
-    Notifications.removeNotificationSubscription(this._handleNotificationResponse);
-  }
+  // componentWillUnmount() {
+  //   Notifications.removeNotificationSubscription(this._handleNotification);
+  //   Notifications.removeNotificationSubscription(this._handleNotificationResponse);
+  // }
   setNotificationsFromPlan = () => {
     for (let activity of this.plan) {
       //this.schedulePushNotification(activity.startTime, "start", activity.name);
@@ -133,6 +133,7 @@ export class TrackingPage extends React.Component {
       for (let activity of newPlanUndo) {
         if (activity.name === this.activityStatusWaitToBeChanged) {
           activity.isUndo = true;
+          activity.isCurrent = false;
           console.log("undo set to true");
         }
 
@@ -244,14 +245,26 @@ export class TrackingPage extends React.Component {
         this.setState({currentEnergy:newEnergyLevel});
         console.log("end notice scheduled");
         this.activityStatusWaitToBeChanged = activityName;
-      } 
-      else if (notificationType === "end" && this.isDeny != true) {
         let newList = this.state.planList;
         for (let activity of newList) {
+          if (activity.name === activityName){
             activity.isCurrent = false;
+          }
+            
         }
         this.setState({planList:newList});
-        return;
+        this.setState({currentActivity:"N/A"});
+        
+      } 
+      else if (notificationType === "end" && this.isDeny == true) {
+        let newList = this.state.planList;
+        for (let activity of newList) {
+          if (activity.name === activityName){
+            activity.isCurrent = false;
+          }
+        }
+        this.setState({planList:newList});
+        this.setState({currentActivity:"N/A"});
       }
       console.log("button identifier",buttonTitle)
       Notifications.setNotificationCategoryAsync("interaction", [{
