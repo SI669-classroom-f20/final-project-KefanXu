@@ -480,3 +480,24 @@ export const planningPage = StyleSheet.create({
     marginRight:15,
   }
 });
+export const trackingPage = StyleSheet.create({
+    slidePanelListItemWarning: {
+      flex:0.5,
+      alignSelf: 'stretch',
+      width:"100%",
+      height:40,
+      marginTop:5,
+      borderRadius:40,
+      borderWidth:2,
+      borderColor:'green',
+      flexDirection: 'row',
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: colors.primary,
+  },
+  planningTimeTextStyle:{
+    fontWeight:"bold",
+    marginLeft:15,
+    color:"green"
+  },
+});

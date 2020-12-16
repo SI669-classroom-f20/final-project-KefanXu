@@ -4,7 +4,7 @@ KeyboardAvoidingView, Alert, Modal,
 LayoutAnimation, Button, Animated, Platform} from 'react-native';
 
 import { getDataModel } from './DataModel';
-import {registStyle, planningPage} from './Styles';
+import {registStyle, planningPage, trackingPage} from './Styles';
 import SlidingUpPanel from 'rn-sliding-up-panel';
 import { Ionicons } from '@expo/vector-icons';
 import { FlatList } from 'react-native-gesture-handler';
@@ -57,16 +57,24 @@ export class TrackingPage extends React.Component {
     this.startingEnergy = this.props.route.params.startingEnergy;
     this.baselineEnergy = this.props.route.params.baselineEnergy;
     console.log("==================plan==================");
+    for (let activity of this.plan) {
+      activity.isDeny = false;
+      activity.isUndo = false;
+      activity.isCurrent = false;
+    }
     console.log(this.plan);
     console.log("==================energy level==================");
     console.log(this.startingEnergy, this.baselineEnergy);
 
-    
+    this.activityStatusWaitToBeChanged;
     this.state = {
       notification: false,
       expoPushToken:"",
       currentActivity:"",
       currentEnergy: this.startingEnergy,
+      planList: this.plan,
+      isDeny:false, 
+      activtyState:"",
 
     }
   }
@@ -104,8 +112,36 @@ export class TrackingPage extends React.Component {
     //response.get
     if (response.actionIdentifier === "startAction") {
       console.log("Deny");
+      this.isDeny = true;
+      let newPlan = this.state.planList;
+      for (let activity of newPlan) {
+        if (activity.name === this.state.currentActivity) {
+          activity.isDeny = true;
+          activity.isCurrent = false;
+        }
+        console.log("Denied activity:",activity)
+      }
+      console.log("New plan:",newPlan)
+      this.setState({planList:newPlan});
+      this.setState({activtyState:"Denied"});
+      console.log(this.state.planList);
     } else if (response.actionIdentifier === "endAction") {
+      //console.log(this.activityStatusWaitToBeChanged);
       console.log("Undo");
+      let newPlanUndo = this.state.planList;
+      console.log("undo get new plan");
+      for (let activity of newPlanUndo) {
+        if (activity.name === this.activityStatusWaitToBeChanged) {
+          activity.isUndo = true;
+          console.log("undo set to true");
+        }
+
+      }
+      this.setState({planList:newPlanUndo});
+      console.log("undo set state");
+      
+      console.log(this.state.planList);
+        
     }
   }
   setNotificationTimer = (scheduledTime,notificationType,notificationName) => {
@@ -158,12 +194,23 @@ export class TrackingPage extends React.Component {
     //   console.log("seconds", secondsInt);
 
       if (notificationType === "start") {
+        this.isDeny = false;
         title = "start " + activityName;
         body = "It's time for " + activityName + "\n" + "Long press to deny";
         actionId = "startAction";
         identifier = "startAction";
         buttonTitle = "Deny";
-        this.setState({currentActivity:activityName})
+        this.setState({currentActivity:activityName});
+        let newList = this.state.planList;
+        for (let activity of newList) {
+          if (activity.name === activityName) {
+            activity.isCurrent = true;
+          } else {
+            activity.isCurrent = false;
+          }
+        }
+        this.setState({planList:newList});
+        this.setState({activtyState:"Ongoing"});
         // Notifications.setNotificationCategoryAsync("interaction", [{
         //   actionId:"startAction",
         //   identifier:"startAction",
@@ -171,7 +218,7 @@ export class TrackingPage extends React.Component {
         // }]);
         console.log("start notice scheduled");
         
-      } else if (notificationType === "end") {
+      } else if (notificationType === "end" && this.isDeny != true) {
         title = "finish " + activityName;
         body = "You complete " + activityName + "\n" + "Long press to undo";
         // Notifications.setNotificationCategoryAsync("interaction", [{
@@ -182,9 +229,31 @@ export class TrackingPage extends React.Component {
         actionId = "endAction";
         identifier = "endAction";
         buttonTitle = "Undo";
+        let newEnergyLevel = this.state.currentEnergy;
+        let activityEnergy;
+        for (let activity of this.plan) {
+          if (activity.name === activityName) {
+            activityEnergy = activity.energyValueNum;
+          }
+        }
+        if (activityName != "Break") {
+          newEnergyLevel -= activityEnergy;
+        } else {
+          newEnergyLevel += activityEnergy;
+        }
+        this.setState({currentEnergy:newEnergyLevel});
         console.log("end notice scheduled");
+        this.activityStatusWaitToBeChanged = activityName;
+      } 
+      else if (notificationType === "end" && this.isDeny != true) {
+        let newList = this.state.planList;
+        for (let activity of newList) {
+            activity.isCurrent = false;
+        }
+        this.setState({planList:newList});
+        return;
       }
-      console.log("button title",buttonTitle)
+      console.log("button identifier",buttonTitle)
       Notifications.setNotificationCategoryAsync("interaction", [{
         actionId:actionId,
         identifier:identifier,
@@ -262,6 +331,7 @@ export class TrackingPage extends React.Component {
       //   />
       // </View>
       <View style={registStyle.contatiner}>
+
         <View style={planningPage.promptBox2Vis}>
           <View style={planningPage.promptBoxTextContainer}>
             <Text style={planningPage.promptBoxText}>
@@ -270,6 +340,53 @@ export class TrackingPage extends React.Component {
             </Text> 
             
           </View>
+        </View>
+        <View style={planningPage.progressTextContainer}>
+          <Text style={planningPage.progressText}>Activity State: {this.state.activtyState}</Text>
+        </View>
+        <View style = {registStyle.dailyPlanList}>
+          <FlatList
+            data = {this.state.planList}
+            renderItem={({item}) => {
+              return (
+                <View>
+                  {item.isCurrent === true ? (   
+                    <View>   
+                      <View style={registStyle.planningTimeText}>
+                        <Text style={trackingPage.planningTimeTextStyle}>Current {item.startTime} - {item.endTime}</Text>
+                      </View>           
+                      <View style={trackingPage.slidePanelListItemWarning}> 
+                        <View style={registStyle.slidePanelListItemTextContainter}>
+                            <Text style={registStyle.slidePanelListItemText}>{item.name}</Text>
+                          </View>
+                          <View style={registStyle.slidePanelListItemIcon}>
+                            <View style={registStyle.slidePanelListItemEnergyContainter}>
+                              <Text style={registStyle.slidePanelListItemText}>{item.energyValue}</Text>
+                            </View>
+                        </View>
+                      </View>
+                    </View>
+
+                  ) : (
+                    <View>
+                      <View style={registStyle.planningTimeText}>
+                        <Text style={registStyle.planningTimeTextStyle}>{item.startTime} - {item.endTime}</Text>
+                      </View>
+                      <View style={registStyle.slidePanelListItem}> 
+                        <View style={registStyle.slidePanelListItemTextContainter}>
+                          <Text style={registStyle.slidePanelListItemText}>{item.name}</Text>
+                        </View>
+                        <View style={registStyle.slidePanelListItemIcon}>
+                          <View style={registStyle.slidePanelListItemEnergyContainter}>
+                            <Text style={registStyle.slidePanelListItemText}>{item.energyValue}</Text>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              );
+            }}/>
         </View>
       </View>
     );
