@@ -291,11 +291,16 @@ export const planningPage = StyleSheet.create({
     borderColor: "#6E6E6E",
     backgroundColor: "white",
   },
+  promptBoxTextContainer: {
+    flex:0.6,
+    justifyContent:"center",
+    alignItems:"center"
+  },
   promptBoxText: {
     fontWeight:"bold",
     color:"black",
     fontSize:15,
-    margin:15,
+    margin:5,
   },
   progressContainer:{
     flex:0.05,
@@ -351,11 +356,7 @@ export const planningPage = StyleSheet.create({
     marginLeft:10,
     marginBottom:0,
   },
-  promptBoxTextContainer: {
-    flex:0.7,
-    justifyContent:"center",
-    alignItems:"center"
-  },
+
   promptBoxNumInputContainterHide:{
     flex:0.3,
     display:"none",
