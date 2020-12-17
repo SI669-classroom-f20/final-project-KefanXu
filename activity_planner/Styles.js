@@ -500,4 +500,33 @@ export const trackingPage = StyleSheet.create({
     marginLeft:15,
     color:"green"
   },
+  countUpTimerStyle:{
+    flex:0.4,
+    flexDirection:"row",
+    justifyContent:"center",
+    alignItems:"center",
+    flexWrap:"wrap",
+    //backgroundColor:"black"
+  },
+  promptBoxTextContainer: {
+    flex:0.7,
+    justifyContent:"center",
+    alignItems:"flex-start",
+    marginLeft:10,
+    //backgroundColor:"black"
+  },
+  countUpTimerTextStyle:{
+    fontWeight:"bold",
+    marginLeft:10,
+    justifyContent:"center",
+    alignItems:"center",
+    color:"black"
+  },
+  countUpTimerTextStyleNotAble:{
+    fontWeight:"bold",
+    marginLeft:10,
+    justifyContent:"center",
+    alignItems:"center",
+    color:colors.secondary,
+  }
 });

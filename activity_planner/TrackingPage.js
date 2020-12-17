@@ -1,6 +1,6 @@
 import React,{useState} from 'react';
 import { TextInput, Text, View, Image, TouchableOpacity,
-KeyboardAvoidingView, Alert, Modal,
+KeyboardAvoidingView, Alert, Modal, TouchableHighlight,
 LayoutAnimation, Button, Animated, Platform} from 'react-native';
 
 import { getDataModel } from './DataModel';
@@ -16,6 +16,7 @@ import moment, { min } from 'moment';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import * as Permissions from 'expo-permissions';
+import { Stopwatch, Timer } from 'react-native-stopwatch-timer'
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -24,7 +25,20 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
-
+const options = {
+  container: {
+    backgroundColor: '#FF0000',
+    padding: 5,
+    borderRadius: 5,
+    width: 100,
+    alignItems: 'center',
+  },
+  text: {
+    fontSize: 15,
+    color: '#FFF',
+    marginLeft: 7,
+  }
+  };
 // Notifications.setNotificationCategoryAsync("interaction", [{
 //     actionId:"test1",
 //     identifier:"test1",
@@ -52,6 +66,9 @@ export class TrackingPage extends React.Component {
     super(props);
     // this.notificationType;
     // this.activityName;
+    this.currentTime;
+    //this.headerButtonIsDisabled = true;
+
     this.currentUser = this.props.route.params.currentUser;
     this.plan = this.props.route.params.plan;
     this.startingEnergy = this.props.route.params.startingEnergy;
@@ -61,6 +78,9 @@ export class TrackingPage extends React.Component {
       activity.isDeny = false;
       activity.isUndo = false;
       activity.isCurrent = false;
+      activity.isStop = false;
+      activity.isLastActivity = false;
+      activity.duration = "";
     }
     console.log(this.plan);
     console.log("==================energy level==================");
@@ -75,8 +95,20 @@ export class TrackingPage extends React.Component {
       planList: this.plan,
       isDeny:false, 
       activtyState:"",
+      headerButtonIsDisabled:true,
+      timerStart: false,
+      stopwatchStart: false,
+      totalDuration: 0,
+      timerReset: false,
+      stopwatchReset: false,
+      isStopwatchDisable:true,
+      stopwatchTextStyle: trackingPage.countUpTimerTextStyleNotAble,
 
     }
+    this.toggleTimer = this.toggleTimer.bind(this);
+    this.resetTimer = this.resetTimer.bind(this);
+    this.toggleStopwatch = this.toggleStopwatch.bind(this);
+    this.resetStopwatch = this.resetStopwatch.bind(this);
   }
   async componentDidMount() {
     let token = await this.registerForPushNotificationsAsync();
@@ -87,6 +119,25 @@ export class TrackingPage extends React.Component {
     Notifications.addNotificationReceivedListener(this._handleNotification);
     Notifications.addNotificationResponseReceivedListener(this._handleNotificationResponse);
     this.setNotificationsFromPlan();
+    this.props.navigation.setOptions({
+    headerRight: () => (
+      <Button
+        title="Next"
+        color="blue"
+        //disabled={this.state.headerButtonIsDisabled}
+        disabled={false}
+        onPress={() => {
+          this.props.navigation.navigate("Reflective Planning", {
+            currentUser: this.currentUser,
+            plan: this.state.planList,
+            startingEnergy: this.startingEnergy,
+            baselineEnergy: this.baselineEnergy
+        });
+          //console.log(this.state.dailyPlanList);
+          //this.dataModel.addPlans(this.currentUser.key, this.state.dailyPlanList);
+        }}
+      />
+    ),});
     return () => {
       Notifications.removeNotificationSubscription(this._handleNotification);
       Notifications.removeNotificationSubscription(this._handleNotificationResponse);
@@ -97,12 +148,26 @@ export class TrackingPage extends React.Component {
   //   Notifications.removeNotificationSubscription(this._handleNotificationResponse);
   // }
   setNotificationsFromPlan = () => {
+    let count = 1;
+    let planLength = this.plan.length;
+    //console.log("this.plan.lenghth",this.plan.length);
     for (let activity of this.plan) {
+      
       //this.schedulePushNotification(activity.startTime, "start", activity.name);
       //this.schedulePushNotification(activity.endTime, "end", activity.name);
       this.setNotificationTimer(activity.startTime, "start", activity.name);
       this.setNotificationTimer(activity.endTime, "end", activity.name);
+      if (count == planLength) {
+        activity.isLastActivity = true;
+        //setTimeout(() => {this.schedulePushNotification(notificationType,notificationName)},secondsInt*1000);
+        this.setEnableNext(activity.endTime);
+
+      }
+      count ++;
+
     }
+    //console.log("==============this.plan");
+    //console.log(this.plan);
   }
 
   _handleNotification = (notification) => {
@@ -110,7 +175,12 @@ export class TrackingPage extends React.Component {
   }
   _handleNotificationResponse = (response) => {
     //response.get
+    //this.setState({stopwatchStart: false, stopwatchReset: true});
+    this.resetStopwatch();
+    this.setState({isStopwatchDisable:true});
+    this.setState({stopwatchTextStyle:trackingPage.countUpTimerTextStyleNotAble});
     if (response.actionIdentifier === "startAction") {
+      
       console.log("Deny");
       this.isDeny = true;
       let newPlan = this.state.planList;
@@ -118,14 +188,17 @@ export class TrackingPage extends React.Component {
         if (activity.name === this.state.currentActivity) {
           activity.isDeny = true;
           activity.isCurrent = false;
+          activity.isComplete = false;
+          activity.duration = "N/A";
         }
-        console.log("Denied activity:",activity)
+        //console.log("Denied activity:",activity)
       }
       console.log("New plan:",newPlan)
       this.setState({planList:newPlan});
       this.setState({activtyState:"Denied"});
       console.log(this.state.planList);
     } else if (response.actionIdentifier === "endAction") {
+      //this.setState({stopwatchStart: false, stopwatchReset: true});
       //console.log(this.activityStatusWaitToBeChanged);
       console.log("Undo");
       let newPlanUndo = this.state.planList;
@@ -134,6 +207,7 @@ export class TrackingPage extends React.Component {
         if (activity.name === this.activityStatusWaitToBeChanged) {
           activity.isUndo = true;
           activity.isCurrent = false;
+          activity.duration = "N/A";
           console.log("undo set to true");
         }
 
@@ -143,6 +217,30 @@ export class TrackingPage extends React.Component {
       
       console.log(this.state.planList);
         
+    }
+  }
+  setEnableNext = (scheduledTime) => {
+    let date = moment(Date.now()).format("YYYY-MM-DD");
+    let dateTime = date + "T" + scheduledTime + "Z";
+    let prasedDate = new Date(dateTime);
+    let prasedDateToNum = prasedDate.getTime() + 5*60*60*1000;
+    //this.notificationType = notificationType;
+    //this.activityName = notificationName;
+    //let theTrigger = new Date(prasedDateToNum);
+    //console.log(prasedDate.toString());
+    //console.log(prasedDate.toString());
+
+    let interval = prasedDateToNum - Date.now();
+    //console.log("interval", interval);
+    let seconds;
+    if (interval > 0) {
+      seconds = interval / (1000);
+      let secondsInt = Math.round(seconds);
+      //console.log("seconds", secondsInt);
+      setTimeout(() => {
+        this.setState({headerButtonIsDisabled:false});
+        this.componentDidMount();
+        },secondsInt*1000 + 3*1000);
     }
   }
   setNotificationTimer = (scheduledTime,notificationType,notificationName) => {
@@ -195,6 +293,9 @@ export class TrackingPage extends React.Component {
     //   console.log("seconds", secondsInt);
 
       if (notificationType === "start") {
+        this.setState({isStopwatchDisable:false});
+        this.setState({stopwatchTextStyle:trackingPage.countUpTimerTextStyle});
+
         this.isDeny = false;
         title = "start " + activityName;
         body = "It's time for " + activityName + "\n" + "Long press to deny";
@@ -212,6 +313,7 @@ export class TrackingPage extends React.Component {
         }
         this.setState({planList:newList});
         this.setState({activtyState:"Ongoing"});
+        this.setState({stopwatchStart: true, stopwatchReset: false});
         // Notifications.setNotificationCategoryAsync("interaction", [{
         //   actionId:"startAction",
         //   identifier:"startAction",
@@ -243,18 +345,26 @@ export class TrackingPage extends React.Component {
           newEnergyLevel += activityEnergy;
         }
         this.setState({currentEnergy:newEnergyLevel});
-        console.log("end notice scheduled");
+        //console.log("end notice scheduled");
         this.activityStatusWaitToBeChanged = activityName;
         let newList = this.state.planList;
+        this.setState({stopwatchStart: false, stopwatchReset: false});
         for (let activity of newList) {
           if (activity.name === activityName){
             activity.isCurrent = false;
+            activity.duration = this.currentTime;
+            activity.isComplete = true;
           }
             
         }
         this.setState({planList:newList});
         this.setState({currentActivity:"N/A"});
-        
+        this.setState({isStopwatchDisable:true});
+        this.setState({activtyState:"N/A"});
+        this.setState({stopwatchTextStyle:trackingPage.countUpTimerTextStyleNotAble});
+
+        //console.log(newList);
+        //console.log(this.currentTime);
       } 
       else if (notificationType === "end" && this.isDeny == true) {
         let newList = this.state.planList;
@@ -264,6 +374,9 @@ export class TrackingPage extends React.Component {
           }
         }
         this.setState({planList:newList});
+        this.setState({isStopwatchDisable:true});
+        this.setState({stopwatchTextStyle:trackingPage.countUpTimerTextStyleNotAble});
+        this.setState({activtyState:"N/A"});
         this.setState({currentActivity:"N/A"});
       }
       console.log("button identifier",buttonTitle)
@@ -314,6 +427,43 @@ export class TrackingPage extends React.Component {
     }
     return token;
   }
+  toggleTimer = () => {
+    this.setState({timerStart: !this.state.timerStart, timerReset: false});
+  }
+ 
+  resetTimer = () => {
+    this.setState({timerStart: false, timerReset: true});
+  }
+ 
+  toggleStopwatch = () => {
+    this.setState({stopwatchStart: !this.state.stopwatchStart, stopwatchReset: false});
+  }
+ 
+  resetStopwatch = () => {
+    this.setState({stopwatchStart: false, stopwatchReset: true});
+  }
+  
+  getFormattedTime = (time) => {
+      this.currentTime = time;
+  };
+  onPressStopTimer = () => {
+    let newList = this.state.planList;
+    for (let activity of newList) {
+      if (activity.name === this.state.currentActivity) {
+        activity.isStop = true;
+        activity.isCurrent = false;
+        activity.duration = this.currentTime;
+      }
+    }
+    this.isDeny = true;
+    this.setState({planList:newList});
+    this.setState({activtyState:"Stopped"});
+    this.setState({stopwatchTextStyle:trackingPage.countUpTimerTextStyleNotAble});
+    this.setState({isStopwatchDisable:true});
+    console.log(newList);
+    this.resetStopwatch();
+
+  }
 
   render() {
     return (
@@ -345,14 +495,30 @@ export class TrackingPage extends React.Component {
       // </View>
       <View style={registStyle.contatiner}>
 
+        {/* <TouchableHighlight onPress={this.onPressStopTimer}>
+          <Text style={{fontSize: 30}}>Reset</Text>
+        </TouchableHighlight> */}
+
         <View style={planningPage.promptBox2Vis}>
-          <View style={planningPage.promptBoxTextContainer}>
+          <View style={trackingPage.promptBoxTextContainer}>
             <Text style={planningPage.promptBoxText}>
               My current activity is {this.state.currentActivity},
               {"\n"}My energy level is {this.state.currentEnergy}
             </Text> 
-            
+              <Stopwatch laps start={this.state.stopwatchStart}
+              reset={this.state.stopwatchReset}
+              options={options}
+              getTime={this.getFormattedTime} />
           </View>
+          <View style={trackingPage.countUpTimerStyle}>
+            <TouchableOpacity 
+              disabled={this.state.isStopwatchDisable}
+              onPress={this.onPressStopTimer}>
+              <Ionicons name="md-stopwatch" size={30} color="black" />
+            </TouchableOpacity>
+            <Text style={this.state.stopwatchTextStyle}>Stop</Text>
+          </View>
+
         </View>
         <View style={planningPage.progressTextContainer}>
           <Text style={planningPage.progressText}>Activity State: {this.state.activtyState}</Text>
