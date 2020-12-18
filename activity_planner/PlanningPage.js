@@ -14,6 +14,7 @@ import NumericInput from 'react-native-numeric-input'
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import moment from 'moment';
+import { Foundation } from '@expo/vector-icons'
 
 
 export class PlanningPage extends React.Component {
@@ -70,7 +71,7 @@ export class PlanningPage extends React.Component {
       startTimeStamp: new Date(),
       slideButtonVal:10,
       headerButtonIsDisabled:true,
-      
+      tipBoxStyle:planningPage.tipBoxStyle,
       //setDatePickerVisibility:false
       //fadeValue: new Animated.Value(0),
     }
@@ -112,6 +113,7 @@ export class PlanningPage extends React.Component {
       this.setState({promptText:"Now add activities into your plan!"});
       this.setState({rightButtonStyle:planningPage.progressIconContainerHide});
       this.setState({numInputStyle:planningPage.promptBoxNumInputContainterHide});
+      this.setState({tipBoxStyle:planningPage.tipBoxStyleHide});
       this.setState({titleText:"3/3"});
       this.setState({slideButtonVal:100});
       this._panel.show();
@@ -133,6 +135,8 @@ export class PlanningPage extends React.Component {
       this.setState({nextButtonState:"Step2"});
       this.setState({rightButtonStyle:planningPage.progressIconContainerVis});
       this.setState({numInputStyle:planningPage.promptBoxNumInputContainterVis});
+      this.setState({tipBoxStyle:planningPage.tipBoxStyle});
+
       this.setState({titleText:"2/3"});
       this.setState({slideButtonVal:10});
       this._panel.hide();
@@ -405,9 +409,8 @@ export class PlanningPage extends React.Component {
             </View>
             <View style={planningPage.modalStartTimeInput}>
               <Text style={planningPage.modalTextStyle}>Enter the start time</Text>
-              <Text style={planningPage.time}>{this.state.dateOnText}</Text>
-            </View>
-            <DateTimePicker
+              {/* <Text style={planningPage.time}>{this.state.dateOnText}</Text> */}
+                          <DateTimePicker
               value={this.state.date}
               mode="default"
               is24Hour={true}
@@ -418,13 +421,14 @@ export class PlanningPage extends React.Component {
                 this.setState({date:date});
                 this.setState({dateOnText:selectDate});
               }}
-              style={{width: 320, backgroundColor: "white", alignContent:"center", justifyContent:"center"}}
+              style={{width: 100, alignContent:"center", justifyContent:"center", flexWrap:"wrap"}}
             />
+            </View>
+
             <View style={planningPage.modalStartTimeInput}>
               <Text style={planningPage.modalTextStyle}>Enter the end time</Text>
-              <Text style={planningPage.time}>{this.state.dateOnText2}</Text>
-            </View>
-            <DateTimePicker
+              {/* <Text style={planningPage.time}>{this.state.dateOnText2}</Text> */}
+              <DateTimePicker
               value={this.state.date2}
               mode="default"
               is24Hour={true}
@@ -436,8 +440,10 @@ export class PlanningPage extends React.Component {
                 this.setState({date2:date});
                 this.setState({dateOnText2:selectDate});
               }}
-              style={{width: 320, backgroundColor: "white",alignContent:"center", justifyContent:"center"}}
+              style={{width: 100,alignContent:"center", justifyContent:"center"}}
             />
+            </View>
+
             <View style={planningPage.modalButtonView}>
               <TouchableOpacity
                 style={planningPage.modalButton} 
@@ -506,6 +512,23 @@ export class PlanningPage extends React.Component {
             </View>
           </TouchableOpacity>
         </View>
+        
+        <View style={this.state.tipBoxStyle}>
+          <Foundation name="pricetag-multiple" size={24} color="black" />
+
+          <View style={planningPage.promptBoxTextContainer}>
+            <Text style={planningPage.promptBoxText}>Tips</Text>
+            <Text style={planningPage.promptBoxTextSec}>
+            - The energy level at the start of the day is the energy that you will distribute throughout the day.
+            {"\n"}
+            {"\n"}- The energy level you are comfortable with is the minimum energy that you are comfortable with.
+            {"\n"}
+            {"\n"}- Add restful activities can help you resume energy.
+            </Text> 
+          </View>    
+
+        </View>
+      
         <View style = {registStyle.dailyPlanList}>
           <FlatList
             data = {this.state.dailyPlanList}

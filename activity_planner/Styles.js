@@ -276,6 +276,25 @@ export const setUpStyle = StyleSheet.create({
   }
 });
 export const planningPage = StyleSheet.create({
+  tipBoxStyle:{
+    flexDirection:"row",
+    width:"90%",
+    borderColor:colors.secondary,
+    borderRadius:15,
+    borderWidth:3,
+    padding:5,
+    marginTop:15
+  },
+  tipBoxStyleHide:{
+    flexDirection:"row",
+    width:"90%",
+    borderColor:colors.secondary,
+    borderRadius:15,
+    borderWidth:3,
+    padding:5,
+    marginTop:15,
+    display:"none"
+  },
   promptBox:{
     flex: 0.15,
     marginTop:20,
@@ -292,15 +311,23 @@ export const planningPage = StyleSheet.create({
     backgroundColor: "white",
   },
   promptBoxTextContainer: {
-    flex:0.6,
+    flex:1,
     justifyContent:"center",
-    alignItems:"center"
+    alignItems:"flex-start"
   },
   promptBoxText: {
     fontWeight:"bold",
     color:"black",
     fontSize:15,
     margin:5,
+    alignItems:"flex-start"
+  },
+  promptBoxTextSec:{
+    fontWeight:"500",
+    color:"black",
+    fontSize:11,
+    margin:5,
+    alignItems:"flex-start"
   },
   progressContainer:{
     flex:0.05,
@@ -310,7 +337,7 @@ export const planningPage = StyleSheet.create({
     alignContent:"center"
   },
   progressTextContainer: {
-    flex:0.03,
+    flex:0.04,
     //flexDirection:"row",
     alignItems:"center",
     justifyContent:"center",
@@ -387,8 +414,9 @@ export const planningPage = StyleSheet.create({
     backgroundColor: "white",
   },
   promptBox2Vis:{
-    flex: 0.15,
+    flex: 0.25,
     marginTop:20,
+    //flexWrap:"wrap",
     marginBottom:5,
     borderWidth:3,
     borderRadius:20,
@@ -408,7 +436,7 @@ export const planningPage = StyleSheet.create({
     marginTop: 22
   },
   modalViewStyle:{
-    flex:0.9,
+    flex:0.5,
     width:"90%",
     margin: 20,
     flexDirection:"column",
@@ -529,4 +557,135 @@ export const trackingPage = StyleSheet.create({
     alignItems:"center",
     color:colors.secondary,
   }
+});
+export const reflectivePlanningStyle = StyleSheet.create({
+  listContainer: {
+    flex:0.8,
+    flexDirection:"row"
+  },
+  dailyPlanList:{
+    flex:0.8,
+    width:"80%",
+    margin:5
+    //backgroundColor:"black",
+  },
+  descriptText:{
+    flex:0.2,
+    backgroundColor:"white",
+    marginLeft:10,
+    marginRight:10,
+    marginBottom:10,
+    borderRadius:5
+  },
+  descriptTextStyle:{
+    color:"black",
+    fontWeight:"bold",
+    marginTop:5,
+    marginLeft:5
+  },
+  descriptTextStyleSec:{
+    color:"black",
+    fontWeight:"bold",
+    fontSize:10,
+    marginTop:3,
+    marginLeft:5
+  },
+  iconsContainer:{
+    alignItems:"center",
+    width:"90%",
+    backgroundColor:"white"
+  },
+  icons:{
+    //marginTop:1,
+    backgroundColor:"white",
+    marginLeft:10,
+    flexDirection:"row",
+    alignItems:"center",
+    borderRadius:5
+  },
+  iconsSec:{
+    backgroundColor:"white",
+    marginLeft:10,
+    marginBottom:10,
+    flexDirection:"row",
+    alignItems:"center",
+    borderRadius:5
+  },
+  iconsText:{
+    color:"black",
+    fontWeight:"bold",
+    fontSize:8,
+    marginLeft:5,
+    marginRight:5
+  },
+  planningTimeTextStyle:{
+    fontWeight:"bold",
+    marginLeft:15,
+    fontSize:10,
+  },
+  slidePanelListItemWarning: {
+    flex:0.5,
+    alignSelf: 'stretch',
+    width:"100%",
+    height:40,
+    marginTop:5,
+    borderRadius:20,
+    flexDirection: 'row',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.warning,
+  },
+  slidePanelListItem: {
+    flex:0.5,
+    alignSelf: 'stretch',
+    width:"100%",
+    height:20,
+    marginTop:5,
+    borderRadius:40,
+    flexDirection: 'row',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#6E6E6E",
+  },
+  slidePanelListItemTextContainter:{
+    flex:0.5,
+    marginLeft:15,
+    flexDirection: 'row',
+    justifyContent:"flex-start",
+    
+    //backgroundColor: "white",
+  },
+  slidePanelListItemText:{
+    fontSize:15,
+    color:"white",
+    fontWeight:"bold",
+  },
+  slidePanelListItemIcon:{
+    flex:0.5,
+    flexDirection: 'row',
+    justifyContent:"flex-end",
+    //backgroundColor:"black"
+    //fontSize:20,
+    //color:"black",
+    //fontWeight:"bold",
+    marginRight:5,
+  },
+  slidePanelListItemEnergyContainter:{
+    flex:0.3,
+    marginRight:15,
+    width:"10%",
+    flexDirection: 'row',
+    alignItems:"center",
+    justifyContent:"center",
+    borderRadius:15,
+    backgroundColor: colors.primary,
+  },
+  slidePanelListItemTextContainter:{
+    flex:0.5,
+    marginLeft:15,
+    flexDirection: 'row',
+    justifyContent:"flex-start",
+    
+    //backgroundColor: "white",
+  },
 });

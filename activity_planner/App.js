@@ -19,7 +19,8 @@ function App() {
       <Stack.Navigator 
         initialRouteName="Login"   
         screenOptions={{
-          headerShown: true
+          headerShown: true,
+          headerLeft:null
         }}
       >
         <Stack.Screen name="Login" component={LoginScreen} />

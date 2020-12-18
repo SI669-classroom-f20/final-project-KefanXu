@@ -4,14 +4,19 @@ KeyboardAvoidingView, Alert, Modal,
 LayoutAnimation, Button, Animated} from 'react-native';
 
 import { getDataModel } from './DataModel';
-import {registStyle, planningPage} from './Styles';
+import {registStyle, planningPage,reflectivePlanningStyle} from './Styles';
 import SlidingUpPanel from 'rn-sliding-up-panel';
 import { Ionicons } from '@expo/vector-icons';
+import { Octicons } from '@expo/vector-icons';
 import { FlatList } from 'react-native-gesture-handler';
 
 import NumericInput from 'react-native-numeric-input'
 //import DateTimePickerModal from "react-native-modal-datetime-picker";
 import DateTimePicker from '@react-native-community/datetimepicker';
+
+import Timeline from 'react-native-timeline-flatlist'
+import Divider from 'react-native-divider';
+
 
 import moment from 'moment';
 
@@ -24,6 +29,40 @@ export class ReflectivePlanning extends React.Component {
     this.dataModel = getDataModel();
     this.currentUser = this.props.route.params.currentUser;
     this.userName = this.currentUser.displayName;
+
+    this.startingEnergy = this.props.route.params.startingEnergy;
+    this.baselineEnergy = this.props.route.params.baselineEnergy;
+
+    this.previousPlan = this.props.route.params.plan;
+    console.log("=================reflective Planning=================");
+    let updatedTimeline = [];
+    for (let activity of this.previousPlan) {
+      //console.log(activity);
+      let updatedActivity = {};
+      updatedActivity.time = activity.startTime + " - " + activity.endTime;
+      updatedActivity.title = activity.name;
+
+      if (activity.isStop) {
+        updatedActivity.circleColor = "red";
+        updatedActivity.dotColor = "white";
+      } else if (activity.isDeny) {
+        updatedActivity.circleColor = "orange";
+        updatedActivity.dotColor = "white";
+        activity.energyValue = "0";
+      } else if (activity.isUndo) {
+        updatedActivity.circleColor = "grey";
+        updatedActivity.dotColor = "white";
+        activity.energyValue = "0";
+      } else {
+        updatedActivity.circleColor = "green";
+        updatedActivity.dotColor = "green";
+      }
+      updatedActivity.description = updatedActivity.time + "\n" +
+                          "\n" + "duration: " + activity.duration + 
+                          "\n" + "Energy Consumption: " +  activity.energyValue;
+      updatedTimeline.push(updatedActivity);
+    }
+    this.previousPlanFormatted = updatedTimeline;
 
     this.isPlanning = false;
     this.position =  new Animated.ValueXY({x:0,y:0});
@@ -405,9 +444,8 @@ export class ReflectivePlanning extends React.Component {
             </View>
             <View style={planningPage.modalStartTimeInput}>
               <Text style={planningPage.modalTextStyle}>Enter the start time</Text>
-              <Text style={planningPage.time}>{this.state.dateOnText}</Text>
-            </View>
-            <DateTimePicker
+              {/* <Text style={planningPage.time}>{this.state.dateOnText}</Text> */}
+              <DateTimePicker
               value={this.state.date}
               mode="default"
               is24Hour={true}
@@ -418,13 +456,14 @@ export class ReflectivePlanning extends React.Component {
                 this.setState({date:date});
                 this.setState({dateOnText:selectDate});
               }}
-              style={{width: 320, backgroundColor: "white", alignContent:"center", justifyContent:"center"}}
+              style={{width: 100, alignContent:"center", justifyContent:"center"}}
             />
+            </View>
+
             <View style={planningPage.modalStartTimeInput}>
               <Text style={planningPage.modalTextStyle}>Enter the end time</Text>
-              <Text style={planningPage.time}>{this.state.dateOnText2}</Text>
-            </View>
-            <DateTimePicker
+              {/* <Text style={planningPage.time}>{this.state.dateOnText2}</Text> */}
+              <DateTimePicker
               value={this.state.date2}
               mode="default"
               is24Hour={true}
@@ -436,8 +475,10 @@ export class ReflectivePlanning extends React.Component {
                 this.setState({date2:date});
                 this.setState({dateOnText2:selectDate});
               }}
-              style={{width: 320, backgroundColor: "white",alignContent:"center", justifyContent:"center"}}
+              style={{width: 100, alignContent:"center", justifyContent:"center"}}
             />
+            </View>
+
             <View style={planningPage.modalButtonView}>
               <TouchableOpacity
                 style={planningPage.modalButton} 
@@ -506,29 +547,70 @@ export class ReflectivePlanning extends React.Component {
             </View>
           </TouchableOpacity>
         </View>
-        <View style = {registStyle.dailyPlanList}>
+        <View style={{marginLeft:5, backgroundColor:"white"}}>
+        <Divider borderColor="black" color="black" orientation="center">
+          <Text style={{fontSize:10,fontWeight:"bold"}}>────────      My Plans      ────────</Text>
+        </Divider>
+        </View>
+          <View style={reflectivePlanningStyle.icons}>
+            <Octicons name="primitive-dot" size={20} color="green" />
+            <Text style={reflectivePlanningStyle.iconsText}>Completed</Text>
+            <Octicons name="primitive-dot" size={20} color="red" />
+            <Text style={reflectivePlanningStyle.iconsText}>Stopped</Text>    
+            <Octicons name="primitive-dot" size={20} color="orange" />
+            <Text style={reflectivePlanningStyle.iconsText}>Denied</Text>
+            <Octicons name="primitive-dot" size={20} color="grey" />
+            <Text style={reflectivePlanningStyle.iconsText}>Undid</Text>
+          </View>
+        <View style = {reflectivePlanningStyle.listContainer}>
+        
+        <View style = {reflectivePlanningStyle.dailyPlanList}>
+            <View style={reflectivePlanningStyle.descriptText}>
+
+              <Text style={reflectivePlanningStyle.descriptTextStyle}>Today's Records</Text>
+              <Text style={reflectivePlanningStyle.descriptTextStyleSec}>Starting Energy: {this.startingEnergy}</Text>
+              <Text style={reflectivePlanningStyle.descriptTextStyleSec}>Energy baseline: {this.baselineEnergy}</Text>
+            </View>
+
+          <Timeline
+            timeStyle={{textAlign: 'center', backgroundColor:'#ff9797', color:'white', marginLeft:20, padding:5, borderRadius:13,fontSize:10}}
+            titleStyle={{fontSize:15}}
+            showTime={false}
+            descriptionStyle={{color:'gray',fontSize:10}}
+            separator={false}
+            innerCircle={'dot'}
+            data={this.previousPlanFormatted}
+          />
+          </View>
+        <View style = {reflectivePlanningStyle.dailyPlanList}>
+          <View style={reflectivePlanningStyle.descriptText}>
+
+              <Text style={reflectivePlanningStyle.descriptTextStyle}>Plan for the next day</Text>
+              <Text style={reflectivePlanningStyle.descriptTextStyleSec}>Starting Energy: {this.energyNum}</Text>
+              <Text style={reflectivePlanningStyle.descriptTextStyleSec}>Energy baseline: {this.energyNumBase}</Text>
+          </View>
           <FlatList
             data = {this.state.dailyPlanList}
             renderItem={({item}) => {
               return (
                 <View>
                   <View style={registStyle.planningTimeText}>
-                    <Text style={registStyle.planningTimeTextStyle}>{item.startTime} - {item.endTime}</Text>
+                    <Text style={reflectivePlanningStyle.planningTimeTextStyle}>{item.startTime} - {item.endTime}</Text>
                   </View>
                   {item.isBelowBaseline === true ? (                  
-                    <View style={registStyle.slidePanelListItemWarning}> 
-                      <View style={registStyle.slidePanelListItemTextContainter}>
-                          <Text style={registStyle.slidePanelListItemText}>{item.name}</Text>
+                    <View style={reflectivePlanningStyle.slidePanelListItemWarning}> 
+                      <View style={reflectivePlanningStyle.slidePanelListItemTextContainter}>
+                          <Text style={reflectivePlanningStyle.slidePanelListItemText}>{item.name}</Text>
                         </View>
-                        <View style={registStyle.slidePanelListItemIcon}>
-                          <View style={registStyle.slidePanelListItemEnergyContainter}>
-                            <Text style={registStyle.slidePanelListItemText}>{item.energyValue}</Text>
+                        <View style={reflectivePlanningStyle.slidePanelListItemIcon}>
+                          <View style={reflectivePlanningStyle.slidePanelListItemEnergyContainter}>
+                            <Text style={reflectivePlanningStyle.slidePanelListItemText}>{item.energyValue}</Text>
                           </View>
                           <TouchableOpacity
                             
                             onPress={() => this.onRemoveItem(item)}>
                             <Ionicons name="ios-remove-circle"
-                              size={30}
+                              size={15}
                               color={"white"} />
               
                           </TouchableOpacity>
@@ -536,19 +618,19 @@ export class ReflectivePlanning extends React.Component {
                     </View>
 
                   ) : (
-                    <View style={registStyle.slidePanelListItem}> 
-                      <View style={registStyle.slidePanelListItemTextContainter}>
-                        <Text style={registStyle.slidePanelListItemText}>{item.name}</Text>
+                    <View style={reflectivePlanningStyle.slidePanelListItem}> 
+                      <View style={reflectivePlanningStyle.slidePanelListItemTextContainter}>
+                        <Text style={reflectivePlanningStyle.slidePanelListItemText}>{item.name}</Text>
                       </View>
-                      <View style={registStyle.slidePanelListItemIcon}>
-                        <View style={registStyle.slidePanelListItemEnergyContainter}>
-                          <Text style={registStyle.slidePanelListItemText}>{item.energyValue}</Text>
+                      <View style={reflectivePlanningStyle.slidePanelListItemIcon}>
+                        <View style={reflectivePlanningStyle.slidePanelListItemEnergyContainter}>
+                          <Text style={reflectivePlanningStyle.slidePanelListItemText}>{item.energyValue}</Text>
                         </View>
                         <TouchableOpacity
                           
                           onPress={() => this.onRemoveItem(item)}>
                           <Ionicons name="ios-remove-circle"
-                            size={30}
+                            size={20}
                             color={"white"} />
             
                         </TouchableOpacity>
@@ -559,6 +641,7 @@ export class ReflectivePlanning extends React.Component {
                 </View>
               );
             }}/>
+        </View>
         </View>
         <View style={registStyle.buttom}>
           <TouchableOpacity

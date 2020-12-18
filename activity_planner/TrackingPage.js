@@ -110,8 +110,55 @@ export class TrackingPage extends React.Component {
     this.toggleStopwatch = this.toggleStopwatch.bind(this);
     this.resetStopwatch = this.resetStopwatch.bind(this);
   }
+  componentWillUnmount() {
+    this.focusUnsubscribe();
+  }
+  onFocus = () => {
+    this.currentUser = this.props.route.params.currentUser;
+    this.plan = this.props.route.params.plan;
+    this.startingEnergy = this.props.route.params.startingEnergy;
+    this.baselineEnergy = this.props.route.params.baselineEnergy;
+    console.log("==================plan==================");
+    for (let activity of this.plan) {
+      activity.isDeny = false;
+      activity.isUndo = false;
+      activity.isCurrent = false;
+      activity.isStop = false;
+      activity.isLastActivity = false;
+      activity.duration = "";
+    }
+    console.log(this.plan);
+    console.log("==================energy level==================");
+    console.log(this.startingEnergy, this.baselineEnergy);
+
+    this.activityStatusWaitToBeChanged = "";
+    this.toggleTimer = this.toggleTimer.bind(this);
+    this.resetTimer = this.resetTimer.bind(this);
+    this.toggleStopwatch = this.toggleStopwatch.bind(this);
+    this.resetStopwatch = this.resetStopwatch.bind(this);
+    this.setState({
+      notification: false,
+      expoPushToken:"",
+      currentActivity:"",
+      currentEnergy: this.startingEnergy,
+      planList: this.plan,
+      isDeny:false, 
+      activtyState:"",
+      headerButtonIsDisabled:true,
+      timerStart: false,
+      stopwatchStart: false,
+      totalDuration: 0,
+      timerReset: false,
+      stopwatchReset: false,
+      isStopwatchDisable:true,
+      stopwatchTextStyle: trackingPage.countUpTimerTextStyleNotAble,
+
+    });
+    this.componentDidMount();
+  }
   async componentDidMount() {
     let token = await this.registerForPushNotificationsAsync();
+    this.focusUnsubscribe = this.props.navigation.addListener('focus', this.onFocus);
     //console.log("token", token);
     //this.setState({expoPushToken:token});
     // console.log("============Tracking============");
